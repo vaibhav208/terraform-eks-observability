@@ -1,0 +1,11 @@
+configuration-as-code
+git
+github
+workflow-aggregator
+pipeline-stage-view
+docker-workflow
+credentials
+credentials-binding
+aws-credentials
+blueocean
+kubernetes

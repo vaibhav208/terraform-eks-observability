@@ -4,12 +4,14 @@ data "aws_ami" "amazon_linux" {
   owners = ["amazon"]
 
   filter {
-    name = "name"
-
-    values = [
-      "al2023-ami-2023*-x86_64"
-    ]
+    name   = "name"
+    values = ["al2023-ami-2023*-x86_64"]
   }
+}
+
+locals {
+  plugins_txt = file("${path.module}/plugins.txt")
+  casc_yaml   = file("${path.module}/casc.yaml")
 }
 
 resource "aws_security_group" "jenkins" {
@@ -28,10 +30,9 @@ resource "aws_security_group" "jenkins" {
 
   ingress {
     description = "SSH"
-
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
 
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -73,7 +74,15 @@ resource "aws_instance" "jenkins" {
     volume_type = "gp3"
   }
 
-  user_data = file("${path.module}/userdata.sh")
+  user_data_replace_on_change = true
+
+  user_data = templatefile(
+    "${path.module}/userdata.sh.tpl",
+    {
+      plugins_txt = local.plugins_txt
+      casc_yaml   = local.casc_yaml
+    }
+  )
 
   tags = {
     Name = "${var.project_name}-jenkins"
